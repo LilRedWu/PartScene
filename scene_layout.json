@@ -1,0 +1,49 @@
+{
+  "large_objects": [
+    {
+      "obj_id": "12159",
+      "category": "Bed",
+      "position": [-3, 3, 0],
+      "rotation": -90,
+      "scale_factor": 3,
+      "random_tiny_objects":"None",
+      "tiny_objects": [
+        {
+          "obj_id": "10222",
+          "category": "Laptop",
+          "scale_factor": 0.5
+        },
+        {
+          "obj_id": "7687",
+          "category": "Keyboard",
+          "scale_factor": 0.5
+        }
+      ]
+    },
+    {
+        "obj_id": "22981",
+        "category": "Table",
+        "position": [3, -3, 0],
+        "rotation": -90,
+        "scale_factor": 2,
+        "random_tiny_objects":"None",
+        "tiny_objects": [
+          {
+            "obj_id": "5245",
+            "category": "Display",
+            "scale_factor": 0.8
+          },
+          {
+            "obj_id": "7687",
+            "category": "Keyboard",
+            "scale_factor": 0.5
+          },
+          {
+            "obj_id": "4057",
+            "category": "Vase",
+            "scale_factor": 0.5
+          }
+        ]
+      }
+  ]
+}
