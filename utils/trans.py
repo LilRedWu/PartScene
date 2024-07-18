@@ -44,10 +44,14 @@ def place_object_on(source_object, target_object, object_surface):
     source_object_ = copy.deepcopy(source_object)
     # print('Initial bounds of the source object:', source_object.bounds)
     
+    retry_count = 0
     while True:
+        retry_count+=1
+        if retry_count>5:
+                raise Exception(f"Too much retry")
         random_x = random.uniform(surface_bounds_min_x, surface_bounds_max_x)
         random_y = random.uniform(surface_bounds_min_y, surface_bounds_max_y)
-        place_at = [random_x, random_y, surface_height + 0.01]
+        place_at = [random_x, random_y, surface_height + 0.0001]
 
         angles = [180, 150, 120, 90, 60, 30, 0, -30, -60, -90, -120, -150, -180]
         random_rotation = random.choice(angles)
@@ -123,7 +127,6 @@ class InstanceObject:
     def get_surface_mesh(self):
         surface_nodename_map = {
             'Bed': ' Mattress_0',
-            'Counter': ' Countertop_0',
             'Table': ' Board_0'
         }
         surface_nodename = surface_nodename_map[self.category]
