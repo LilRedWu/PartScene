@@ -8,7 +8,7 @@ import pdb
 import os
 import numpy as np
 import trimesh
-
+import xatlas
 # Load JSON file
 def load_json(file_path):
     with open(file_path, 'r') as file:
@@ -170,7 +170,7 @@ def generate_scene_objects(id_list):
     label_to_number = {}
     cat_to_id = {}
     for obj_id in id_list:
-        print(obj_id)
+        # print(obj_id)
         obj_base_dir = '/home/lidosan/Datasets/datasets--ShapeNet--PartNet-archive/blobs/data_v0/{}'.format(obj_id)
         obj_structure = load_json(os.path.join(obj_base_dir, 'result.json'))
         obj_infromation = load_json(os.path.join(obj_base_dir, 'meta.json'))
@@ -212,6 +212,12 @@ def generate_part_scene(instances):
                 central_points_dict[f"{category}:{geometry_name}"] = transformed_central_point
     return combined_scene,central_points_dict
 
+
+def save_as_uv_mesh(mesh,output_path):
+    vmapping, indices, uvs = xatlas.parametrize(mesh.vertices, mesh.faces)
+    # Trimesh needs a material to export uv coordinates and always creates a *.mtl file.
+    # Alternatively, we can use the `export` helper function to export the mesh as obj.
+    xatlas.export(f"{output_path}", mesh.vertices[vmapping], indices, uvs)
 
 
 def as_mesh(scene_or_mesh):

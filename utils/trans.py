@@ -97,7 +97,6 @@ class InstanceObject:
         self.position = np.zeros(3)
         self.rotation_matrix = np.eye(4)
         self.translation_matrix = np.eye(4)
-
         # Extract mesh details
         self.contains = list(self.mesh.geometry.keys())
         self.central_points = {}
