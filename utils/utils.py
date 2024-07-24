@@ -45,6 +45,22 @@ def extract_parts(data, parent_label=''):
     return parts
 
 
+def extract_parts_v2(data, parent_label=''):
+    parts = []
+    if isinstance(data, dict):
+        if 'text' in data:
+            label = parent_label + '' + data['text'] if parent_label else data['text']
+            if 'objs' in data:
+                parts.append((label, data['objs']))
+            if 'children' in data:
+                for child in data['children']:
+                    parts.extend(extract_parts(child, label))
+    elif isinstance(data, list):
+        for item in data:
+            parts.extend(extract_parts(item, parent_label))
+    return parts
+
+
 def load_and_color_meshes_instance(obj_id, parts, number_to_label=None):
     if number_to_label is None:
         number_to_label = {}
@@ -164,6 +180,57 @@ def load_and_color_meshes_semantics(obj_id, parts, number_to_label=None):
     return point_cloud, number_to_label, combined_mesh
 
 
+def load_parts2obj_uv(obj_id, parts,label_to_index):
+    obj_base_dir = f'/home/lidosan/Datasets/datasets--ShapeNet--PartNet-archive/blobs/data_v0/{obj_id}/objs'
+    
+    combined_mesh_list = []
+    combined_vertices = []
+    combined_labels = []
+    obbs_dict = {}
+    unique_labels = {label for label, _ in parts}
+
+
+
+    label_counts = {label: 0 for label in unique_labels}
+
+    for label, objs in parts:
+        try:
+            label_number = label_to_index[label]
+        except:
+            print(label)
+        # else:
+        #     continue
+        
+        for obj in objs:
+            mesh_path = os.path.join(obj_base_dir, f"{obj}.obj")
+            if os.path.exists(mesh_path):
+                origin_mesh = trimesh.load(mesh_path)
+                save_as_uv_mesh(origin_mesh,'temp.obj')
+                mesh = trimesh.load('temp.obj')
+                vertices = mesh.vertices
+                num_vertices = vertices.shape[0]
+                labels = np.full((num_vertices, 1), label_number)
+
+                combined_vertices.append(vertices)
+                combined_labels.append(labels)
+                
+                unique_node_name = f"{label}_{label_counts[label]}"
+                unique_node_name = unique_node_name.split('/')[0]+':'+ unique_node_name.split('/')[-1]
+                obbs_dict[unique_node_name] = mesh.bounds
+                combined_mesh_list.append(mesh)
+                label_counts[label] += 1
+
+    if combined_vertices:
+        combined_vertices = np.vstack(combined_vertices)
+        combined_labels = np.vstack(combined_labels)
+        point_cloud = np.hstack((combined_vertices, combined_labels))
+    else:
+        point_cloud = np.array([]) 
+        
+    combined_mesh = trimesh.util.concatenate(combined_mesh_list)
+    return point_cloud, label_to_index, combined_mesh, obbs_dict
+
+
 def generate_scene_objects(id_list): 
     point_clouds = {}
     mesh_dict = {}
@@ -184,6 +251,30 @@ def generate_scene_objects(id_list):
         point_clouds[obj_id] = point_cloud
         cat_to_id[obj_id] = obj_infromation['model_cat']
     return point_clouds, mesh_dict, label_to_number,cat_to_id
+
+
+def generate_scene_object_v2(id_list): 
+    point_clouds = {}
+    mesh_dict = {}
+    label_to_number = {}
+    cat_to_id = {}
+    for obj_id in id_list:
+        # print(obj_id)
+        obj_base_dir = '/home/lidosan/Datasets/PartNet_complete/{}'.format(obj_id)
+        obj_structure = load_json(os.path.join(obj_base_dir, 'label_to_number.json'))
+        # obj_infromation = load_json(os.path.join(obj_base_dir, 'meta.json'))
+        # Extract parts with labels and object files
+        parts = extract_parts(obj_structure)
+
+        # Load first object
+        point_cloud, label_to_number, combined_mesh = load_and_color_meshes_semantics(obj_id, parts, label_to_number)
+
+        mesh_dict[obj_id] = combined_mesh
+        point_clouds[obj_id] = point_cloud
+        cat_to_id[obj_id] = obj_infromation['model_cat']
+    return point_clouds, mesh_dict, label_to_number,cat_to_id
+
+
 
 
 
@@ -244,3 +335,10 @@ def random_objects_generate(surface_top_list,all_obj_dict):
     selected_category = random.choice(surface_top_list)
     selected_obj_id = random.choice(list(all_obj_dict[selected_category].keys()))
     return selected_category,selected_obj_id
+ 
+ 
+def color_the_mesh(mesh,im,uvs):
+    material = trimesh.visual.texture.SimpleMaterial(image=im)
+    color_visuals = trimesh.visual.TextureVisuals(uv=uvs, image=im, material=material)
+    mesh=trimesh.Trimesh(vertices=mesh.vertices, faces=mesh.faces, visual=color_visuals, validate=True, process=True)
+    return mesh
