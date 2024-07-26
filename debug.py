@@ -13,58 +13,87 @@ import shutil
 import torch
 
 
-def load_parts2obj_uv(obj_id, parts,label_to_index):
+def downsample_mesh(mesh, target_num_vertices):
+    # Use Trimesh's built-in simplification (decimation) method
+    # The function simplifies the mesh to a target number of faces, not vertices
+    # So we need to estimate the number of faces that would approximately give us the target number of vertices
+    target_num_faces = int(target_num_vertices * (len(mesh.faces) / len(mesh.vertices)))
+    
+    # Simplify the mesh
+    simplified_mesh = mesh.simplify_quadric_decimation(target_num_faces)
+    
+    # breakpoint()
+    # Return the simplified mesh
+    return simplified_mesh
+
+
+
+
+def load_parts2obj_uv(obj_id, parts, label_to_index):
     obj_base_dir = f'/home/lidosan/Datasets/datasets--ShapeNet--PartNet-archive/blobs/data_v0/{obj_id}/objs'
     
     combined_mesh_list = []
     combined_vertices = []
     combined_labels = []
     obbs_dict = {}
+    count_dict = {}
     unique_labels = {label for label, _ in parts}
 
-
-
     label_counts = {label: 0 for label in unique_labels}
+    unique_labels_mesh_dict = {label: [] for label in unique_labels}
 
-    breakpoint()
     for label, objs in parts:
-        try:
-            label_number = label_to_index[label]
-        except:
-            print(label)
-        # else:
-        #     continue
+        label_number = label_to_index.get(label)
+        if label_number is None:
+            print(f"Label {label} not found in label_to_index")
+            continue
         
         for obj in objs:
             mesh_path = os.path.join(obj_base_dir, f"{obj}.obj")
             if os.path.exists(mesh_path):
-                origin_mesh = trimesh.load(mesh_path)
-                save_as_uv_mesh(origin_mesh,'temp.obj')
-                mesh = trimesh.load('temp.obj')
-                vertices = mesh.vertices
-                num_vertices = vertices.shape[0]
-                labels = np.full((num_vertices, 1), label_number)
-
-                combined_vertices.append(vertices)
-                combined_labels.append(labels)
-                
+                mesh = trimesh.load(mesh_path)
                 unique_node_name = f"{label}_{label_counts[label]}"
-                # unique_node_name = unique_node_name.split('->')[0]+'_'+unique_node_name.split('->')[-1]
-                label_counts[label] += 1
-                breakpoint()
+                unique_node_name = unique_node_name.split('/')[0] + ':' + unique_node_name.split('/')[-1]
                 obbs_dict[unique_node_name] = mesh.bounds
-                combined_mesh_list.append(mesh)
-                
+                count_dict[unique_node_name] = mesh.vertices.shape[0]
+                unique_labels_mesh_dict[label].append(mesh)
+                label_counts[label] += 1
+
+    for label, meshes in unique_labels_mesh_dict.items():
+        label_number = label_to_index.get(label)
+        if label_number is None:
+            print(f"Label {label} not found in label_to_index")
+            continue
+            
+        combined_mesh = trimesh.util.concatenate(meshes)
+        if len(combined_mesh.vertices) > 10000:
+            save_as_uv_mesh(downsample_mesh(combined_mesh, 10000), 'temp.obj')
+        else:
+            save_as_uv_mesh(combined_mesh, 'temp.obj')
+        
+        combined_mesh_uv = trimesh.load('temp.obj')
+        if len(combined_mesh.vertices) > 1024:
+            trimesh.grouping.merge_vertices(combined_mesh_uv, merge_tex=True)
+
+        vertices = combined_mesh_uv.vertices
+        num_vertices = vertices.shape[0]
+        labels = np.full((num_vertices, 1), label_number)
+
+        combined_vertices.append(vertices)
+        combined_labels.append(labels)
+        combined_mesh_list.append(combined_mesh_uv)
+        
     if combined_vertices:
         combined_vertices = np.vstack(combined_vertices)
         combined_labels = np.vstack(combined_labels)
         point_cloud = np.hstack((combined_vertices, combined_labels))
     else:
-        point_cloud = np.array([]) 
-        
-    combined_mesh = trimesh.util.concatenate(combined_mesh_list)
-    return point_cloud, label_to_index, combined_mesh, obbs_dict
+        point_cloud = np.array([])
 
+    final_mesh = trimesh.util.concatenate(combined_mesh_list)
+    print(label,len(final_mesh.vertices), point_cloud.shape)
+    
+    return point_cloud, label_to_index, final_mesh, obbs_dict
 
 import re
 # Assuming the following functions are defined:
