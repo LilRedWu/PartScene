@@ -1,0 +1,13 @@
+{
+  "chair_decoration": 0,
+  "chair_back": 1,
+  "chair_leg": 2,
+  "chair_seat": 3,
+  "tabletop_surface": 4,
+  "table_base": 5,
+  "table_shelf": 6,
+  "other_tabletop": 7,
+  "wheel": 8,
+  "chair_arm": 9,
+  "pillow": 10
+}

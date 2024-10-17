@@ -1,1 +1,0 @@
-{"Camera_0": {"type": "camera", "position": [0.0, 0.0, 0.0], "look_at": [0.0, 0.0, 0.0], "up": [0.0, 0.0, 1.0], "focal_length": 28.0, "animation": false}, "Chair": {"type": "mesh", "filename": "Chair_43634_1514853.obj", "translation": [-1.5, -1.0, 0.0], "rotation": [0.0, 0.0, 1.0, 6.123233995736766e-17], "scale": [1, 1, 1], "visible": true}}
