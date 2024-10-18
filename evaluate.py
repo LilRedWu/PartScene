@@ -370,7 +370,7 @@ def evaluate_matches(matches):
 
 def compute_averages(aps):
     d_inf = 0
-    o50 = np.where(np.isclose(opt["overlaps"], 0.3))
+    o50 = np.where(np.isclose(opt["overlaps"], 0.5))
     o25 = np.where(np.isclose(opt["overlaps"], 0.25))
     oAllBut25 = np.where(np.logical_not(np.isclose(opt["overlaps"], 0.25)))
     avg_dict = {}

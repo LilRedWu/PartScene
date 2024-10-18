@@ -1,13 +1,13 @@
 {
-  "chair_decoration": 0,
-  "chair_back": 1,
-  "chair_leg": 2,
-  "chair_seat": 3,
-  "tabletop_surface": 4,
-  "table_base": 5,
-  "table_shelf": 6,
-  "other_tabletop": 7,
-  "wheel": 8,
-  "chair_arm": 9,
-  "pillow": 10
+  "chair_arm": 0,
+  "tabletop_surface": 1,
+  "chair_back": 2,
+  "table_base": 3,
+  "chair_seat": 4,
+  "chair_leg": 5,
+  "other_tabletop": 6,
+  "pillow": 7,
+  "table_shelf": 8,
+  "chair_decoration": 9,
+  "wheel": 10
 }
