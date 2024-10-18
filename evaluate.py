@@ -11,7 +11,7 @@ import torch
 import glob
 
 from scipy import stats
-from utils.eval_util import CLASS_LABELS,VALID_CLASS_IDS
+from utils.eval_util import *
 import \
     utils.eval_util as util_3d
 # import wandb
@@ -107,7 +107,7 @@ for i in range(len(VALID_CLASS_IDS)):
     ID_TO_LABEL[VALID_CLASS_IDS[i]] = CLASS_LABELS[i]
 # ---------- Evaluation params ---------- #
 opt = {}
-opt["overlaps"] = np.append(np.arange(0.1, 0.95, 0.05),0.25)
+opt["overlaps"] = np.append(np.append(np.arange(0.1, 0.95, 0.05),0.24),0.324)
 
 print(opt["overlaps"])
 # minimum region size for evaluation [verts]
@@ -308,31 +308,6 @@ def evaluate_matches(matches):
     return ap
 
 
-def compute_averages(aps):
-    d_inf = 0
-    o50 = np.where(np.isclose(opt["overlaps"], 0.5))
-    o25 = np.where(np.isclose(opt["overlaps"], 0.25))
-    oAllBut25 = np.where(np.logical_not(np.isclose(opt["overlaps"], 0.25)))
-    avg_dict = {}
-    # avg_dict['all_ap']     = np.nanmean(aps[ d_inf,:,:  ])
-    # breakpoint()
-    avg_dict["all_ap"] = np.nanmean(aps[d_inf, :, oAllBut25])
-    avg_dict["all_ap_50%"] = np.nanmean(aps[d_inf, :, o50])
-    avg_dict["all_ap_25%"] = np.nanmean(aps[d_inf, :, o25])
-    avg_dict["classes"] = {}
-    for (li, label_name) in enumerate(CLASS_LABELS):
-        avg_dict["classes"][label_name] = {}
-        # avg_dict["classes"][label_name]["ap"]       = np.average(aps[ d_inf,li,  :])
-        avg_dict["classes"][label_name]["ap"] = np.average(
-            aps[d_inf, li, oAllBut25]
-        )
-        avg_dict["classes"][label_name]["ap50%"] = np.average(
-            aps[d_inf, li, o50]
-        )
-        avg_dict["classes"][label_name]["ap25%"] = np.average(
-            aps[d_inf, li, o25]
-        )
-    return avg_dict
 
 
 def make_pred_info(pred: dict):
@@ -475,24 +450,6 @@ def print_results(avgs):
     print("")
 
 
-def write_result_file(avgs, filename):
-    _SPLITTER = ","
-    with open(filename, "w") as f:
-        f.write(
-            _SPLITTER.join(["class", "class id", "ap", "ap50", "ap25"]) + "\n"
-        )
-        for i in range(len(VALID_CLASS_IDS)):
-            class_name = CLASS_LABELS[i]
-            class_id = VALID_CLASS_IDS[i]
-            ap = avgs["classes"][class_name]["ap"]
-            ap50 = avgs["classes"][class_name]["ap50%"]
-            ap25 = avgs["classes"][class_name]["ap25%"]
-            f.write(
-                _SPLITTER.join(
-                    [str(x) for x in [class_name, class_id, ap, ap50, ap25]]
-                )
-                + "\n"
-            )
 
 
 def evaluate(
@@ -637,7 +594,6 @@ def evaluate(
 
     # print
     print_results(avgs)
-    write_result_file(avgs, output_file)
 
 
 

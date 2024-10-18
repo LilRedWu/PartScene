@@ -64,6 +64,14 @@ def process_3d_scenes(dataset_dir, save_dir):
 # gt_instance_dir = os.path.join(dataset_dir, 'mask_valid_gt')
 # save_dir = 'part_scene_results'
 
+prompt_dict = {
+
+    "Regular Chair":["leg","back","seat","arm"],
+    "Regular Table":["leg","tabletop"]
+
+}
+
+
 
 def map_parts_to_scene(scene_pcd, part_mask, ins_mask):
     ins_points = np.asarray(scene_pcd.points)[ins_mask]

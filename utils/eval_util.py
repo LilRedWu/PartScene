@@ -343,3 +343,69 @@ def get_instances(ids, class_ids, class_labels, id2label):
         if inst.label_id in class_ids:
             instances[id2label[inst.label_id]].append(inst.to_dict())
     return instances
+
+
+def write_result_file(avgs, filename):
+    _SPLITTER = ","
+    with open(filename, "w") as f:
+        f.write(
+            _SPLITTER.join(["class", "class id", "ap", "ap50", "ap25"]) + "\n"
+        )
+        for i in range(len(VALID_CLASS_IDS)):
+            class_name = CLASS_LABELS[i]
+            class_id = VALID_CLASS_IDS[i]
+            ap = avgs["classes"][class_name]["ap"]
+            ap50 = avgs["classes"][class_name]["ap50%"]
+            ap25 = avgs["classes"][class_name]["ap25%"]
+            f.write(
+                _SPLITTER.join(
+                    [str(x) for x in [class_name, class_id, ap, ap50, ap25]]
+                )
+                + "\n"
+            )
+
+
+def compute_averages(aps,opt):
+    d_inf = 0
+    o50 = np.where(np.isclose(opt["overlaps"], 0.32))
+    o25 = np.where(np.isclose(opt["overlaps"], 0.24))
+    oAllBut25 = np.where(np.logical_not(np.isclose(opt["overlaps"], 0.24)))
+    avg_dict = {}
+    # avg_dict['all_ap']     = np.nanmean(aps[ d_inf,:,:  ])
+    # breakpoint()
+    avg_dict["all_ap"] = np.nanmean(aps[d_inf, :, oAllBut25])
+    avg_dict["all_ap_50%"] = np.nanmean(aps[d_inf, :, o50])
+    avg_dict["all_ap_25%"] = np.nanmean(aps[d_inf, :, o25])
+    avg_dict["classes"] = {}
+    for (li, label_name) in enumerate(CLASS_LABELS):
+        avg_dict["classes"][label_name] = {}
+        # avg_dict["classes"][label_name]["ap"]       = np.average(aps[ d_inf,li,  :])
+        avg_dict["classes"][label_name]["ap"] = np.average(
+            aps[d_inf, li, oAllBut25]
+        )
+        avg_dict["classes"][label_name]["ap50%"] = np.average(
+            aps[d_inf, li, o50]
+        )
+        avg_dict["classes"][label_name]["ap25%"] = np.average(
+            aps[d_inf, li, o25]
+        )
+    return avg_dict
+
+def write_result_file(avgs, filename):
+    _SPLITTER = ","
+    with open(filename, "w") as f:
+        f.write(
+            _SPLITTER.join(["class", "class id", "ap", "ap50", "ap25"]) + "\n"
+        )
+        for i in range(len(VALID_CLASS_IDS)):
+            class_name = CLASS_LABELS[i]
+            class_id = VALID_CLASS_IDS[i]
+            ap = avgs["classes"][class_name]["ap"]
+            ap50 = avgs["classes"][class_name]["ap50%"]
+            ap25 = avgs["classes"][class_name]["ap25%"]
+            f.write(
+                _SPLITTER.join(
+                    [str(x) for x in [class_name, class_id, ap, ap50, ap25]]
+                )
+                + "\n"
+            )

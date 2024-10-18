@@ -24,6 +24,7 @@ from third_party.Ground_SAM.mask_proposal_2d import segment2d
 import open3d as o3d
 from utils.utils_3d import * 
 import json 
+from third_party.torkit3d.config.config import * 
 
 
 def load_instance_info(instance_info_dir):
@@ -55,7 +56,7 @@ def load_instance_info(instance_info_dir):
 import os 
 
 FLORENCE2_MODEL_ID = "microsoft/Florence-2-large"
-SAM2_CHECKPOINT = "/home/wan/Workplace-why/Point-SAM/third_party/Ground_SAM/checkpoints/sam2_hiera_large.pt"
+SAM2_CHECKPOINT = "third_party/Ground_SAM/checkpoints/sam2_hiera_large.pt"
 SAM2_CONFIG = "sam2_hiera_l.yaml"
 
 torch.autocast(device_type="cuda", dtype=torch.bfloat16).__enter__()
@@ -74,27 +75,15 @@ florence2_processor = AutoProcessor.from_pretrained(FLORENCE2_MODEL_ID, trust_re
 # build sam 2
 sam2_model = build_sam2(SAM2_CONFIG, SAM2_CHECKPOINT, device=device)
 sam2_predictor = SAM2ImagePredictor(sam2_model)
-
-
-
-
+reversed_dict = {value: key for key, value in cls_dict.items()}
 
 
 
 dataset_dir = '/home/wan/Datasets/Test_scene/part_valid'
-project_path = '/home/wan/Workplace-why/Point-SAM'
+project_path = '/home/wan/Workplace-why/Part-SAM'
 final_masks_save_dir = os.path.join(project_path, 'part_scene_results')
 by_product_save_dir = 'part_scene_saved'
 ckpt_path = os.path.join(project_path, "checkpoints/model.safetensors")
-
-with open('/home/wan/Workplace-why/Point-SAM/cls_dict.json','rb') as f:
-        cls_dict = json.load(f)
-        reversed_dict = {value: key for key, value in cls_dict.items()}
-
-with open('/home/wan/Workplace-why/Point-SAM/utils/cls_3d.json','rb') as f:
-        cls_part_dict = json.load(f)
-
-
 for scene_id in tqdm(os.listdir(final_masks_save_dir)[:]):
         scene_path = os.path.join(dataset_dir, scene_id, f'points_{scene_id}.ply')
         mask_info_path = os.path.join(final_masks_save_dir, scene_id, f'{scene_id}_summary.txt')
@@ -120,9 +109,9 @@ for scene_id in tqdm(os.listdir(final_masks_save_dir)[:]):
                 device = "cuda:0" if torch.cuda.is_available() else "cpu"
                 torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
                 # if os.path.exists('')
+                sem_seg_path = os.path.join(f'{instance_dir}/ins_info', 'sem_seg.pt')
+                if os.path.exists(sem_seg_path):
+                       continue
                 result_dict = segment2d(num_views = num_views ,save_dir=instance_dir,text_input=text_input,task_prompt=task_prompt,florence2_model=florence2_model,florence2_processor=florence2_processor,sam2_predictor= sam2_predictor)
-                torch.save(result_dict, os.path.join(f'{instance_dir}/ins_info', 'sem_seg.pt'))
+                torch.save(result_dict, sem_seg_path)
                 
-        
-
-

@@ -119,7 +119,8 @@ def process_masks_and_calculate_iou(
 
     return target_3d_masks
 
-
+ 
+    
 def assign_labels_to_masks(class_results, target_3d_masks, num_views, N=1):
         # Dictionary to store mIoU for each mask-label combination
         mask_label_miou = defaultdict(lambda: defaultdict(float))
@@ -151,8 +152,8 @@ def assign_labels_to_masks(class_results, target_3d_masks, num_views, N=1):
                 }
 
         print(f"Final predictions:")
-        for mask_idx, prediction in final_predictions.items():
-            print(f"Mask {mask_idx}: Label={prediction['label']}, mIoU={prediction['miou']:.4f}, Views={prediction['views']}")
+        # for mask_idx, prediction in final_predictions.items():
+        #     print(f"Mask {mask_idx}: Label={prediction['label']}, mIoU={prediction['miou']:.4f}, Views={prediction['views']}")
 
         return final_predictions
 

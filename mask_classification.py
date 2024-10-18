@@ -13,7 +13,8 @@ import glob
 import shutil
 import glob
 import re
-
+from third_party.torkit3d.config.config import * 
+from tqdm import tqdm
 
 def save_mask_results(scene_id, part_mask_after_process, scene_pcd, ins_mask, ins, output_dir, part_label_v2):
     try:
@@ -98,49 +99,16 @@ def save_mask_results(scene_id, part_mask_after_process, scene_pcd, ins_mask, in
 
 
 dataset_dir = '/home/wan/Datasets/Test_scene/part_valid'
-project_path = '/home/wan/Workplace-why/Point-SAM'
-output_dir = '/home/wan/Workplace-why/Point-SAM/part_scene_results'
+project_path = '/home/wan/Workplace-why/PartScene'
+output_dir = 'part_scene_results'
 final_masks_save_dir = os.path.join(project_path, 'part_scene_results')
 by_product_save_dir = 'part_scene_saved'
 ckpt_path = os.path.join(project_path, "checkpoints/model.safetensors")
-with open('/home/wan/Workplace-why/Point-SAM/cls_dict.json','rb') as f:
-        cls_dict = json.load(f)
-        reversed_dict = {value: key for key, value in cls_dict.items()}
-
-with open('/home/wan/Workplace-why/Point-SAM/utils/cls_3d.json','rb') as f:
-        cls_part_dict = json.load(f)
-
-with open('/home/wan/Workplace-why/Point-SAM/part_dict.json','rb') as f:
-       part_dict = json.load(f)
-
-
-part_label_v2 = {'chair_leg': 0,
- 'chair_back': 1,
- 'chair_seat': 2,
- 'other_tabletop': 3,
- 'chair_arm': 4,
- 'table_leg': 5,
- 'table_tabletop': 6,
- 'pillow': 7,
- 'table_shelf': 8,
- 'chair_decoration': 9}
-
-part_label_v1 = {'chair_leg': 0,
- 'chair_back': 1,
- 'chair_seat': 2,
- 'other_tabletop': 3,
- 'chair_arm': 4,
- 'table_base': 5,
- 'tabletop_surface': 6,
- 'pillow': 7,
- 'table_shelf': 8,
- 'chair_decoration': 9}
+reversed_dict = {value: key for key, value in cls_dict.items()}
 
 
 
-for scene_id in os.listdir('part_scene_saved')[:5]:
-        print(scene_id)
-
+for scene_id in tqdm(os.listdir(final_masks_save_dir)[:]): 
         scene_path = os.path.join(dataset_dir, scene_id, f'points_{scene_id}.ply')
         mask_result_path = os.path.join(final_masks_save_dir, scene_id)
         output_scene_dir = os.path.join(project_path, by_product_save_dir, scene_id)
