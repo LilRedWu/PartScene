@@ -97,7 +97,7 @@ if __name__ == "__main__":
     TOP_K_PROPOSALS = 250
 
     dataset_dir = '/home/wan/Datasets/Test_scene/part_valid'
-    project_path = '/home/wan/Workplace-why/Part-SAM'
+    project_path = '/home/wan/Workplace-why/PartScene'
     final_masks_save_dir = os.path.join(project_path, 'part_scene_results')
     by_product_save_dir = 'part_scene_saved'
     ckpt_path = os.path.join(project_path, "checkpoints/model.safetensors")
