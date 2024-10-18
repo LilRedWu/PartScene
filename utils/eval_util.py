@@ -26,6 +26,7 @@ def print_error(message, user_fault=False):
     sys.exit(-1)
 
 
+
 # if string s represents an int
 def represents_int(s):
     try:
@@ -223,6 +224,30 @@ def export_instance_ids_for_eval(filename, label_ids, instance_ids):
             mask[loc[0]] = 1
             export_ids(output_mask_file, mask)
 
+label_mapping = {
+        'table_base': 'table_leg',
+        'tabletop_surface': 'table_tabletop',
+        'chair_back': 'chair_back',
+        'chair_leg': 'chair_leg',
+        'chair_seat': 'chair_seat'
+    }
+
+CLASS_LABELS = [
+        "chair_leg", "chair_back", "chair_seat", "other_tabletop", "chair_arm",
+        "table_leg", "table_tabletop", "pillow", "table_shelf", "chair_decoration"
+    ]
+VALID_CLASS_IDS = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+
+CLASS_LABELS = [
+        "chair_leg",
+        "chair_back",
+        "chair_seat",
+        "table_tabletop",
+    ]
+VALID_CLASS_IDS = np.array(
+        [0, 1, 2, 5]
+    )
 
 # ------------ Instance Utils ------------ #
 

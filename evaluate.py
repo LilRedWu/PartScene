@@ -11,22 +11,16 @@ import torch
 import glob
 
 from scipy import stats
+from utils.eval_util import CLASS_LABELS,VALID_CLASS_IDS
 import \
     utils.eval_util as util_3d
 # import wandb
-
 import numpy as np
 from collections import defaultdict
 
 def convert_new_dataset_to_gt_instances(gt_ids, gt_dict, CLASS_LABELS, VALID_CLASS_IDS, ID_TO_LABEL):
     # Create a mapping from gt_dict labels to standardized labels
-    label_mapping = {
-        'table_base': 'table_leg',
-        'tabletop_surface': 'table_tabletop',
-        'chair_back': 'chair_back',
-        'chair_leg': 'chair_leg',
-        'chair_seat': 'chair_seat'
-    }
+
 
     # Initialize the gt_instances dictionary
     gt_instances = {label: [] for label in CLASS_LABELS}
@@ -40,13 +34,12 @@ def convert_new_dataset_to_gt_instances(gt_ids, gt_dict, CLASS_LABELS, VALID_CLA
     for instance_id, count in instance_point_counts.items():
         # Get the label from gt_dict and map it to the standardized label
         original_label = gt_dict[str(instance_id)]
-        standardized_label = label_mapping.get(original_label, original_label)
+        standardized_label = util_3d.label_mapping.get(original_label, original_label)
 
         # Find the corresponding label_id in VALID_CLASS_IDS
         try:
             label_id = VALID_CLASS_IDS[CLASS_LABELS.index(standardized_label)]
         except ValueError:
-            print(f"Warning: Label '{standardized_label}' not found in CLASS_LABELS. Skipping.")
             continue
 
         # Create the instance dictionary
@@ -66,17 +59,11 @@ def convert_new_dataset_to_gt_instances(gt_ids, gt_dict, CLASS_LABELS, VALID_CLA
 
 def identify_void_areas(gt_ids, gt_dict, CLASS_LABELS, VALID_CLASS_IDS):
     # Create a mapping from gt_dict labels to standardized labels
-    label_mapping = {
-        'table_base': 'table_leg',
-        'tabletop_surface': 'table_tabletop',
-        'chair_back': 'chair_back',
-        'chair_leg': 'chair_leg',
-        'chair_seat': 'chair_seat'
-    }
+
 
     # Create a mapping from gt_ids to standardized class labels
     id_to_standard_label = {
-        int(id): label_mapping.get(label, label) 
+        int(id): util_3d.label_mapping.get(label, label) 
         for id, label in gt_dict.items()
     }
 
@@ -109,54 +96,6 @@ args = get_args()
 dataset = args.dataset
 
 
-if dataset=="s3dis":
-    #---------- Label info ---------- #
-    CLASS_LABELS = ['ceiling', 'floor', 'wall', 'beam', 'column', 'window', 'door', 'table', 'chair', 'sofa', 'bookcase', 'board']
-    VALID_CLASS_IDS = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-elif dataset=="scannet":
-    #---------- Label info ---------- #
-    CLASS_LABELS = [
-        "cabinet",
-        "bed",
-        "chair",
-        "sofa",
-        "table",
-        "door",
-        "window",
-        "bookshelf",
-        "picture",
-        "counter",
-        "desk",
-        "curtain",
-        "refrigerator",
-        "shower curtain",
-        "toilet",
-        "sink",
-        "bathtub",
-    ]
-    VALID_CLASS_IDS = np.array(
-        [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36]
-    )
-elif dataset == "part_scene":
-    #---------- Label info ---------- #
-    CLASS_LABELS = [
-        "chair_leg", "chair_back", "chair_seat", "other_tabletop", "chair_arm",
-        "table_leg", "table_tabletop", "pillow", "table_shelf", "chair_decoration"
-    ]
-    VALID_CLASS_IDS = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-
-
-    CLASS_LABELS = [
-        "chair_leg",
-        "chair_back",
-        "chair_seat",
-        "chair_arm",
-        "table_leg",
-        "table_tabletop",
-    ]
-    VALID_CLASS_IDS = np.array(
-        [0, 1, 2, 3, 4, 5]
-    )
 
 
 
@@ -169,6 +108,7 @@ for i in range(len(VALID_CLASS_IDS)):
 # ---------- Evaluation params ---------- #
 opt = {}
 opt["overlaps"] = np.append(np.arange(0.1, 0.95, 0.05),0.25)
+
 print(opt["overlaps"])
 # minimum region size for evaluation [verts]
 opt["min_region_sizes"] = np.array([0])  # 100 for s3dis, scannet
@@ -472,14 +412,12 @@ def assign_instances_for_scan(pred: dict, gt_file: str, gt_dict: dict):
         # matched gt instances
         matched_gt = []
         # go thru all gt instances with matching label
-        # breakpoint()
+
         for (gt_num, gt_inst) in enumerate(gt2pred[label_name]):
             intersection = np.count_nonzero(
                 np.logical_and(gt_ids == gt_inst["instance_id"], pred_mask)
             )
-            # breakpoint()
             if intersection > 0:
-                print('intersection',label_name)
                 gt_copy = gt_inst.copy()
                 pred_copy = pred_instance.copy()
                 gt_copy["intersection"] = intersection
@@ -516,11 +454,11 @@ def print_results(avgs):
         ap_avg = avgs["classes"][label_name]["ap"]
         ap_50o = avgs["classes"][label_name]["ap50%"]
         ap_25o = avgs["classes"][label_name]["ap25%"]
-        line = "{:<15}".format(label_name) + sep + col1
-        line += sep + "{:>15.3f}".format(ap_avg) + sep
-        line += sep + "{:>15.3f}".format(ap_50o) + sep
-        line += sep + "{:>15.3f}".format(ap_25o) + sep
-        print(line)
+        # line = "{:<15}".format(label_name) + sep + col1
+        # line += sep + "{:>15.3f}".format(ap_avg) + sep
+        # line += sep + "{:>15.3f}".format(ap_50o) + sep
+        # line += sep + "{:>15.3f}".format(ap_25o) + sep
+        # print(line)
         # result_table.add_data(label_name, ap_avg, ap_50o, ap_25o)
 
     all_ap_avg = avgs["all_ap"]
@@ -713,11 +651,11 @@ def main():
     
     preds = {}
     #part_scene_results/0001/0001_part_summary.txt
-    for scene_name in finished_scene[:  ]:
+    for scene_name in finished_scene[:]:
+        print(scene_name)
         file_path = os.path.join(pred_dir, scene_name, scene_name + '_part_summary.txt')  # {SCENE_ID}.txt file
         scene_pred_mask_list = np.loadtxt(file_path, dtype=str)  # (num_masks, 2)
         scene_pred_mask_list = scene_pred_mask_list.reshape(-1,3)
-        print(scene_name)
         assert scene_pred_mask_list.shape[1] == 3, f'{scene_name} Each line should have 2 values: instance mask path and confidence score.'
 
         pred_masks = []
@@ -727,14 +665,8 @@ def main():
         for mask_path, prediction, conf_score in scene_pred_mask_list: 
             # Read mask and confidence score for each instance mask
             pred_mask = np.loadtxt(os.path.join(pred_dir, scene_name, mask_path), dtype=int) # Values: 0 for the background, 1 for the instance
-            try:
-                pred_class.append(int(prediction))
-            except:
-                continue
-
             pred_masks.append(pred_mask)
             pred_scores.append(float(conf_score))
-            print(scene_name)
             pred_class.append(int(prediction))
 
         assert len(pred_masks) == len(pred_scores) == len(pred_class), f'{scene_name}Number of masks and confidence scores should be the same.'
