@@ -158,6 +158,64 @@ def apply_pointwise_nms(masks, scores, xyz, threshold):
 
 
 
+# Post-processing: Apply point-wise NMS to remove duplicate proposals
+def apply_pointwise_nms(masks, scores, xyz, threshold):
+    """
+    Apply Non-Maximum Suppression (NMS) on point-wise masks using 3D IoU.
+    :param masks: Tensor of shape (num_masks, num_points) with binary mask values
+    :param scores: Tensor of shape (num_masks, *) with scores for each mask. This can have multiple elements.
+    :param xyz: Tensor of shape (1, num_points, 3) with the actual 3D coordinates of each point.
+    :param threshold: IoU threshold for suppression
+    :return: selected_masks, selected_scores
+    """
+    # If scores have more than one dimension, reduce it (e.g., by taking the max score per mask)
+    if scores.dim() > 1:
+        scores = scores.max(dim=1).values  # Use the max score across the second dimension
+
+    # Sort masks by their scores in descending order
+    sorted_indices = torch.argsort(scores, descending=True)
+    masks = masks[sorted_indices]
+    scores = scores[sorted_indices]
+
+    # Generate bounding boxes from masks and xyz coordinates
+    boxes = generate_bounding_boxes_from_masks_and_xyz(masks, xyz)
+
+    selected_masks = []
+    selected_scores = []
+    suppressed_indices = set()
+
+    for i in range(masks.shape[0]):
+        if i in suppressed_indices:
+            continue
+
+        mask_i = masks[i]
+        score_i = scores[i].item()  # Convert tensor to scalar
+        box_i = boxes[i]
+
+        for j in range(i + 1, masks.shape[0]):
+            if j in suppressed_indices:
+                continue
+            mask_j = masks[j]
+            box_j = boxes[j]
+
+            # Call the 3D IoU function
+            iou_value = iou(box_i, box_j)
+            
+            if iou_value > threshold:
+                suppressed_indices.add(j)  # Suppress mask_j if IoU is greater than the threshold
+        
+        # Keep the current mask and score if it's not suppressed
+        selected_masks.append(mask_i)
+        selected_scores.append(score_i)
+
+    # Convert the selected masks and scores to tensors
+    selected_masks = torch.stack(selected_masks) if selected_masks else torch.empty((0, masks.shape[1]))
+    selected_scores = torch.tensor(selected_scores)
+
+    return selected_masks, selected_scores
+
+
+
 
 def visualize_point_clouds_with_masks(xyz, masks, mask_colors=None):
     """
