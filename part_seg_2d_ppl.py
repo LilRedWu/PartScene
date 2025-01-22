@@ -86,8 +86,8 @@ by_product_save_dir = 'part_scene_saved'
 ckpt_path = os.path.join(project_path, "checkpoints/model.safetensors")
 for scene_id in tqdm(os.listdir(final_masks_save_dir)[:]):
         scene_path = os.path.join(dataset_dir, scene_id, f'points_{scene_id}.ply')
-        # mask_info_path = os.path.join(final_masks_save_dir, scene_id, f'{scene_id}_summary.txt')
-        # output_scene_dir = os.path.join(project_path, by_product_save_dir, scene_id)
+        mask_info_path = os.path.join(final_masks_save_dir, scene_id, f'{scene_id}_summary.txt')
+        output_scene_dir = os.path.join(project_path, by_product_save_dir, scene_id)
         mask_infos = load_prediction_data(mask_info_path)
         print(scene_id)
 
