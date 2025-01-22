@@ -270,3 +270,56 @@ def project_3d_to_2d(obj_xyz: np.ndarray,
     
     return mask2d_view_list, mask_2d_bbox_correspondences
 
+
+def project_3d_to_2d(obj_xyz: np.ndarray, 
+                     top_k_masks: np.ndarray, 
+                     screen_coords: np.ndarray, 
+                     pc_depth: np.ndarray, 
+                     img_size: Tuple[int, int] = (1024, 1024)) -> Tuple[List[np.ndarray], Dict[int, Dict[int, Tuple[float, float, float, float]]]]:
+    width, height = img_size
+    num_views = screen_coords.shape[0]
+    
+    if isinstance(top_k_masks, torch.Tensor):
+        top_k_masks = top_k_masks.cpu().numpy()
+    
+    num_masks = top_k_masks.shape[0]
+    colors = np.random.randint(0, 255, size=(num_masks, 3))
+    
+    mask_2d_bbox_correspondences = {view_idx: {} for view_idx in range(num_views)}
+    mask2d_view_list = []
+
+    for view_idx in range(num_views):
+        depth_buffer = np.full((height, width), np.inf)
+        mask_2d_color_view = np.zeros((height, width, 3), dtype=np.uint8)
+        
+        view_screen_coords = screen_coords[view_idx]
+        view_pc_depth = pc_depth[view_idx]
+        
+        for mask_idx in range(num_masks):
+            mask_points = obj_xyz[top_k_masks[mask_idx]]
+            mask_screen_coords = view_screen_coords[top_k_masks[mask_idx]]
+            mask_depth = np.linalg.norm(mask_points, axis=1)
+            
+            valid_points = (mask_screen_coords[:, 0] >= 0) & (mask_screen_coords[:, 0] < width) & \
+                           (mask_screen_coords[:, 1] >= 0) & (mask_screen_coords[:, 1] < height)
+            
+            valid_screen_coords = mask_screen_coords[valid_points].astype(int)
+            valid_depths = mask_depth[valid_points]
+            
+            y, x = valid_screen_coords[:, 1], valid_screen_coords[:, 0]
+            current_depths = depth_buffer[y, x]
+            update_mask = valid_depths < current_depths
+            
+            if np.any(update_mask):
+                update_y, update_x = y[update_mask], x[update_mask]
+                depth_buffer[update_y, update_x] = valid_depths[update_mask]
+                mask_2d_color_view[update_y, update_x] = colors[mask_idx]
+                
+                min_x, min_y = np.min(valid_screen_coords[update_mask], axis=0)
+                max_x, max_y = np.max(valid_screen_coords[update_mask], axis=0)
+                mask_2d_bbox_correspondences[view_idx][mask_idx] = (min_x, min_y, max_x, max_y)
+        
+        mask2d_view_list.append(mask_2d_color_view)
+    
+    return mask2d_view_list, mask_2d_bbox_correspondences
+
