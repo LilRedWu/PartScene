@@ -57,6 +57,46 @@ def convert_new_dataset_to_gt_instances(gt_ids, gt_dict, CLASS_LABELS, VALID_CLA
     return gt_instances
 
 
+
+def convert_new_dataset_to_gt_instances(gt_ids, gt_dict, CLASS_LABELS, VALID_CLASS_IDS, ID_TO_LABEL):
+    # Create a mapping from gt_dict labels to standardized labels
+
+
+    # Initialize the gt_instances dictionary
+    gt_instances = {label: [] for label in CLASS_LABELS}
+
+    # Count the number of points for each instance
+    instance_point_counts = defaultdict(int)
+    for id in gt_ids:
+        instance_point_counts[id] += 1
+
+    # Process each unique instance
+    for instance_id, count in instance_point_counts.items():
+        # Get the label from gt_dict and map it to the standardized label
+        original_label = gt_dict[str(instance_id)]
+        standardized_label = util_3d.label_mapping.get(original_label, original_label)
+
+        # Find the corresponding label_id in VALID_CLASS_IDS
+        try:
+            label_id = VALID_CLASS_IDS[CLASS_LABELS.index(standardized_label)]
+        except ValueError:
+            continue
+
+        # Create the instance dictionary
+        instance_dict = {
+            'instance_id': int(instance_id),
+            'label_id': int(label_id),
+            'vert_count': int(count),
+            'med_dist': -1,
+            'dist_conf': 0.0
+        }
+
+        # Add the instance to the corresponding label in gt_instances
+        gt_instances[standardized_label].append(instance_dict)
+
+    return gt_instances
+
+
 def identify_void_areas(gt_ids, gt_dict, CLASS_LABELS, VALID_CLASS_IDS):
     # Create a mapping from gt_dict labels to standardized labels
 
