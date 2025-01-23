@@ -101,6 +101,8 @@ def save_mask_results(scene_id, part_mask_after_process, scene_pcd, ins_mask, in
 dataset_dir = '/home/wan/Datasets/Test_scene/part_valid'
 project_path = '/home/wan/Workplace-why/PartScene'
 output_dir = 'part_scene_results'
+output_dir = 'part_scene_results'
+
 final_masks_save_dir = os.path.join(project_path, 'part_scene_results')
 by_product_save_dir = 'part_scene_saved'
 ckpt_path = os.path.join(project_path, "checkpoints/model.safetensors")
