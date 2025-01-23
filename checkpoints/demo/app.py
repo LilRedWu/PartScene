@@ -116,12 +116,12 @@ def clear():
 
 
 @app.route("/next", methods=["POST"])
-def next():
-    global prompts, labels, segment_mask, masks, prompt_mask
-    masks.append(segment_mask.cpu().numpy())
-    prompts, labels = [], []
-    prompt_mask = None
-    return jsonify({"status": "cleared"})
+# def next():
+#     global prompts, labels, segment_mask, masks, prompt_mask
+#     masks.append(segment_mask.cpu().numpy())
+#     prompts, labels = [], []
+#     prompt_mask = None
+#     return jsonify({"status": "cleared"})
 
 
 @app.route("/save", methods=["POST"])
