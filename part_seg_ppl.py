@@ -105,7 +105,20 @@ if __name__ == "__main__":
     model = build_point_sam(ckpt_path, 512, 64).to(device)
     print('Model built successfully')
 
-    
+    for scene_id in os.listdir(final_masks_save_dir)[:]:
+        # print(scene_id)
+            print(scene_id)
+        # if scene_id == '0013':
+            # continue
+            scene_path = os.path.join(dataset_dir, scene_id, f'points_{scene_id}.ply')
+            mask_info_path = os.path.join(final_masks_save_dir, scene_id, f'{scene_id}_summary.txt')
+            output_dir = os.path.join(project_path, by_product_save_dir, scene_id)
+            os.makedirs(output_dir, exist_ok=True)
+            mask_infos = load_prediction_data(mask_info_path)
+
+        
+            process_scene(scene_id, scene_path, mask_info_path, model, output_dir,mask_infos)
+            
     for scene_id in os.listdir(final_masks_save_dir)[:]:
         # print(scene_id)
             print(scene_id)
