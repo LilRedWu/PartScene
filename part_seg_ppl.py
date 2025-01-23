@@ -31,21 +31,21 @@ import open3d as o3d
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def load_prediction_data(filename):
-    with open(filename, 'r') as file:
-        return [{'file': parts[0], 'prediction': int(parts[1]), 'confidence': float(parts[2])}
-                for line in file if len(parts := line.strip().split()) == 3]
+# def load_prediction_data(filename):
+#     with open(filename, 'r') as file:
+#         return [{'file': parts[0], 'prediction': int(parts[1]), 'confidence': float(parts[2])}
+#                 for line in file if len(parts := line.strip().split()) == 3]
 
-def normalize_point_cloud(xyz):
-    centroid = np.mean(xyz, axis=0)
-    xyz_centered = xyz - centroid
-    furthest_distance = np.max(np.sqrt(np.sum(xyz_centered**2, axis=1)))
-    return xyz_centered / furthest_distance
+# def normalize_point_cloud(xyz):
+#     centroid = np.mean(xyz, axis=0)
+#     xyz_centered = xyz - centroid
+#     furthest_distance = np.max(np.sqrt(np.sum(xyz_centered**2, axis=1)))
+#     return xyz_centered / furthest_distance
 
-def process_scene(scene_id, scene_path, mask_info_path, model, output_dir,mask_infos):
-    pcd = o3d.io.read_point_cloud(scene_path)
-    xyz = np.asarray(pcd.points)
-    rgb = np.asarray(pcd.colors) * 255
+# def process_scene(scene_id, scene_path, mask_info_path, model, output_dir,mask_infos):
+#     pcd = o3d.io.read_point_cloud(scene_path)
+#     xyz = np.asarray(pcd.points)
+#     rgb = np.asarray(pcd.colors) * 255
 
 #     rotation_matrix = o3d.geometry.get_rotation_matrix_from_xyz((-np.pi/2, 0, 0))
 
