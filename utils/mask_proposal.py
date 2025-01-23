@@ -69,6 +69,48 @@ def mask_proposal(xyz,rgb,num_masks,model):
 
     return top_k_masks,top_k_indices,top_k_scores
 
+
+def mask_proposal(xyz,rgb,num_masks,model):
+    # Initialize prompt sampling with FPS
+    batch_size = xyz.shape[0]
+    lengths = torch.tensor([xyz.shape[1]] * batch_size).cuda()
+
+    # Sample prompts using FPS (Farthest Point Sampling)
+    prompt_coords, _ = sample_farthest_points(xyz, lengths=lengths, K=num_masks)
+    prompt_labels = torch.ones((1, num_masks), dtype=torch.long).cuda()
+
+    # Generate masks: 3 masks per prompt
+    all_masks = []
+    all_scores = []
+    all_featas = []
+
+    # Set point cloud for the model (downsampled)
+    model.set_pointcloud(xyz, rgb)
+
+    # Generate masks for each prompt
+    with torch.no_grad():
+        for i in tqdm(range(num_masks)):
+            prompt = prompt_coords[:, i:i+1, :]  # (1, 1, 3)
+            label = prompt_labels[:, i:i+1]      # (1, 1)
+            masks, scores, featas = model.predict_masks(prompt, label)  # masks (batch_size, 3, num_points)
+            
+            all_masks.append(masks.squeeze(0))  # Collect masks (3, N_down)
+            all_scores.append(scores)  # Collect scores for NMS
+            all_featas.append(featas)  # Collect features for analysis
+
+    # Convert the masks and scores to tensors for easier processing
+    all_masks = torch.cat(all_masks, dim=0)  # Shape: (NUM_PROMPTS * 3, num_points)
+    all_scores = torch.cat(all_scores)  # Shape: (NUM_PROMPTS * 3,)
+
+    selected_masks, selected_scores = apply_pointwise_nms(all_masks, all_scores,xyz, threshold=NMS_THRESHOLD)
+
+    # Truncate proposals to top K
+    top_k_indices = torch.argsort(selected_scores, descending=True)[:TOP_K_PROPOSALS]
+    top_k_masks = selected_masks[top_k_indices]
+    top_k_scores = selected_scores[top_k_indices]
+
+    return top_k_masks,top_k_indices,top_k_scores
+
 def batch_mask_proposal(xyz, rgb, num_masks, ckpt_path="checkpoints/model.safetensors", nms_threshold=0.3, top_k_proposals=10):
     model = build_point_sam(ckpt_path, 512, 64).cuda()  # (ckpt_path, num_centers, KNN size)
     print('Build Model Success')
