@@ -28,26 +28,29 @@ Compile the CUDA dependencies using the following command:
 
 ## Steup
 ### Preprocess the 3d mask proposal 
+```
 python mask_classification.py 
-
+```
 
 ### Preprocess the 3d-2d pair 
+```
 python part_seg_2d_ppl.py
-
+```
 
 ### Train Model
-
+```
 python train.py --config configs/train_config.yaml
-
+```
 
 ### Evaluate Model
+```
 python evaluate.py --model_path path_to_checkpoint
-
+```
 
 ###  Running Benchmark
-
+```
 bash benchmark.sh
-
+```
 
 # Contributions
 If you'd like to contribute, feel free to submit a pull request or open an issue for discussion.
