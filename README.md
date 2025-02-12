@@ -1,9 +1,12 @@
 
 # PartScene - 3D Part Segmentation
 
-This repository provides a deep learning-based framework for 3D part segmentation. PartScene utilizes advanced neural architectures to process and segment point cloud data effectively.
+This paper aims to achieve the segmentation of any 3D part based on natural language descriptions, extending beyond traditional object-level 3D scene understanding and addressing both data and methodological challenges. Existing datasets and methods are predominantly limited to object-level comprehension.
 
-For more details, please check our [paper]().
+To overcome the limitations of data availability, we introduce the first large-scale 3D dataset with dense part annotations, created through an innovative and cost-effective method for constructing 3D scenes with fine-grained part-level annotations, paving the way for advanced 3D part understanding.
+
+On the methodological side, we propose a two-stage “search & localize” strategy to effectively tackle the challenges of part-level segmentation. Extensive experiments demonstrate the superiority of our approach in open-vocabulary 3D understanding tasks at both the part and object levels, with strong generalization capabilities across various 3D datasets.
+For more details, please check our [paper](https://lilredwu.github.io/).
 
 ## System Requirements
 
@@ -22,51 +25,29 @@ pip install -r requirements.txt
 
 Compile the CUDA dependencies using the following command:
 
-```bash
-cd utils/emd_ && python setup.py install 
-```
 
-## Preparation
+## Steup
+### Preprocess the 3d mask proposal 
+python mask_classification.py 
 
-Datasets are available [here](https://drive.google.com/drive/folders/1dAH9R3XDV0z69Bz6lBaftmJJyuckbPmR). Run the command below to download all datasets (ShapeNetRender, ModelNet40, ScanObjectNN, ShapeNetPart) to reproduce the results.
 
-```bash
-cd Data
-source download_data.sh
-```
+### Preprocess the 3d-2d pair 
+python part_seg_2d_ppl.py
 
-## Unsupervised Training
 
-```bash
-python train.py --model pointnet --dataset Data/ --nepoch 100 --dataset_type shapenet --lr 0.001 --decay 0.8 --step_size 2000 --batchSize 64 --task_type segmentation --structure 3layer --feature_size 128 --regularization chamfer
-```
+### Train Model
 
-## Supervised Training
+python train.py --config configs/train_config.yaml
 
-Firstly, load the model parameters trained in contrastive learning. Then, generate the deform dataset using the Deform Net:
 
-```bash
-python scripts/get_dataset.py --deform_net1_path path/to/deform_net_1.pth.tar --deform_net2_path path/to/deform_net_2.pth.tar --classifier_path path/to/best_model.pth.tar --dataset_path /path/to/dataset
-```
+### Evaluate Model
+python evaluate.py --model_path path_to_checkpoint
 
-Second, use the augmented data for supervised training:
 
-```bash
-cd third_party/Pointnet_Pointnet2_pytorch
-```
+###  Running Benchmark
 
-```bash
-python train_classification.py --log_dir pointnet_cls --dataset /path/to/dataset --dataset_type modelnet40_npy --epoch 50
-```
+bash benchmark.sh
 
-## Email for QA
 
-Any questions related to the repo, please send an email to: `1353099226why@gamil.com`.
-
-## Acknowledgment
-
-This repository is developed based on [https://github.com/MohamedAfham/CrossPoint.git](https://github.com/MohamedAfham/CrossPoint.git). Thanks for their contribution.
-
-## Citation
-
-If you find our work useful, please kindly cite our work.
+#Contributions
+If you'd like to contribute, feel free to submit a pull request or open an issue for discussion.
