@@ -1,65 +1,67 @@
-Mask3D is a deep learning-based framework for 3D part segmentation. This repository contains code for training, evaluating, and utilizing 3D segmentation models.
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage{listings}
 
-Installation
+\title{Mask3D - 3D Part Segmentation}
+\author{}
+\date{}
 
-Prerequisites
+\begin{document}
 
+\maketitle
+
+\section{Overview}
+PartScene is a deep learning-based framework for 3D part segmentation. This repository contains code for training, evaluating, and utilizing 3D segmentation models.
+
+\section{Installation}
+
+\subsection{Prerequisites}
 Ensure you have the following installed:
+\begin{itemize}
+\item Python 3.8+
+\item CUDA (for GPU acceleration)
+\item PyTorch (compatible with your CUDA version)
+\item Git LFS (for handling large files)
+\end{itemize}
 
-Python 3.8+
-
-CUDA (for GPU acceleration)
-
-PyTorch (compatible with your CUDA version)
-
-Git LFS (for handling large files)
-
-Setup
-
-Clone the repository:
-
-git clone https://github.com/LilRedWu/Mask3D.git
+\subsection{Setup}
+\begin{lstlisting}[language=bash]
+git clone https://github.com/LilRedWu/PartScene.git
 cd Mask3D
-
-Install dependencies:
-
 pip install -r requirements.txt
-
-Set up large files using Git LFS:
-
 git lfs install
 git lfs pull
+\end{lstlisting}
 
-Usage
+\section{Usage}
 
-Preprocessing Data
-
+\subsection{Preprocessing Data}
 Before training, ensure your dataset is correctly formatted. You may need to preprocess part masks using:
-
+\begin{lstlisting}[language=bash]
 python preprocess_partmask.ipynb
+\end{lstlisting}
 
-Training the Model
-
+\subsection{Training the Model}
 To train the 3D part segmentation model, run:
-
+\begin{lstlisting}[language=bash]
 python train.py --config configs/config.yaml
-
+\end{lstlisting}
 Modify the config file as needed.
 
-Evaluation
-
+\subsection{Evaluation}
 Run the evaluation script on a trained model:
-
+\begin{lstlisting}[language=bash]
 python evaluate.py --model checkpoints/demo/model.pth
+\end{lstlisting}
 
-Running Inference
-
+\subsection{Running Inference}
 To perform inference on new data:
-
+\begin{lstlisting}[language=bash]
 python inference.py --input input_file.ply --output output_file.ply
+\end{lstlisting}
 
-Project Structure
-
+\section{Project Structure}
+\begin{verbatim}
 Mask3D/
 │── build/                   # Compiled dependencies
 │── checkpoints/demo/        # Pre-trained models
@@ -76,11 +78,13 @@ Mask3D/
 │── part_seg_all.ipynb       # Notebook for segmentation
 │── part_seg_ppl.py          # Removed script
 │── preprocess_partmask.ipynb # Data preprocessing notebook
+\end{verbatim}
 
-Acknowledgments
-
+\section{Acknowledgments}
 This repository builds upon various open-source projects for 3D deep learning. Contributions and modifications have been made to adapt it for specific tasks.
 
-Contact
-
+\section{Contact}
 For any issues or questions, please contact the repository owner or raise an issue in the GitHub repository.
+
+\end{document}
+
