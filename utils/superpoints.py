@@ -1,19 +1,55 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-def generate_superpoints(point_cloud, eps=0.1, min_samples=10):
-    coords = point_cloud[:, :3]  # assuming point_cloud is Nx6 (xyzrgb)
-    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
-    labels = clustering.labels_
+import numpy as np
+import open3d as o3d
+from sklearn.neighbors import NearestNeighbors
+
+def generate_superpoints(point_cloud, voxel_size=0.05, lambda_edge=0.8):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(point_cloud[:, :3])
+    pcd.colors = o3d.utility.Vector3dVector(point_cloud[:, 3:] / 255.0)
     
-    num_superpoints = labels.max() + 1
-    superpoints = np.zeros((len(point_cloud), num_superpoints), dtype=int)
-    for i, label in enumerate(labels):
-        if label != -1:  # ignore noise points
-            superpoints[i, label] = 1
+    down_pcd = pcd.voxel_down_sample(voxel_size)
+    points = np.asarray(down_pcd.points)
+    colors = np.asarray(down_pcd.colors)
+    
+    nbrs = NearestNeighbors(n_neighbors=10, algorithm='kd_tree').fit(points)
+    distances, indices = nbrs.kneighbors(points)
+    
+    edges = []
+    for i in range(len(points)):
+        for j in indices[i, 1:]:
+            dist = distances[i, 1 + list(indices[i, 1:]).index(j)]
+            color_diff = np.linalg.norm(colors[i] - colors[j])
+            edge_weight = dist + lambda_edge * color_diff
+            edges.append((i, j, edge_weight))
+    
+    edges = sorted(edges, key=lambda x: x[2])
+    parent = list(range(len(points)))
+    
+    def find(p):
+        if parent[p] != p:
+            parent[p] = find(parent[p])
+        return parent[p]
+    
+    def union(p, q):
+        parent[find(p)] = find(q)
+    
+    for u, v, _ in edges:
+        if find(u) != find(v):
+            union(u, v)
+    
+    labels = [find(i) for i in range(len(points))]
+    unique_labels = np.unique(labels)
+    superpoints = np.zeros((len(point_cloud), len(unique_labels)), dtype=np.uint8)
+    
+    full_nbrs = NearestNeighbors(n_neighbors=1).fit(points)
+    _, indices = full_nbrs.kneighbors(point_cloud[:, :3])
+    for i, idx in enumerate(indices[:, 0]):
+        superpoints[i, labels[idx]] = 1
     
     return superpoints
-
 import numpy as np
 
 def calculate_view_weights(camera_pos, mask_pos, grid_size=3):
