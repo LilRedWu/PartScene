@@ -26,32 +26,58 @@ def calculate_view_weights(camera_pos, mask_pos, grid_size=3):
         return 2
     return 1
 
-def group_3d_parts(superpoints, point_cloud, views, masks, camera_positions):
+import numpy as np
+import open3d as o3d
+
+def calculate_view_weights(camera_pos, mask_center, scene_bounds, grid_size=3):
+    x_min, x_max, y_min, y_max, _, _ = scene_bounds
+    grid_width = (x_max - x_min) / grid_size
+    grid_height = (y_max - y_min) / grid_size
+    
+    cam_x, cam_y = int((camera_pos[0] - x_min) / grid_width), int((camera_pos[1] - y_min) / grid_height)
+    mask_x, mask_y = int((mask_center[0] - x_min) / grid_width), int((mask_center[1] - y_min) / grid_height)
+    
+    dist = max(abs(cam_x - mask_x), abs(cam_y - mask_y))
+    if dist == 0:
+        return 3
+    elif dist == 1:
+        return 2
+    return 1
+
+def project_points(point_cloud, camera_pos, orientation, intrinsics):
+    R = o3d.geometry.get_rotation_matrix_from_axis_angle(np.cross([0, 0, 1], orientation))
+    T = np.eye(4)
+    T[:3, :3] = R
+    T[:3, 3] = camera_pos
+    
+    points = point_cloud[:, :3]
+    points_cam = (R @ points.T + T[:3, 3:4]).T
+    depth = points_cam[:, 2]
+    uv = (intrinsics.intrinsic_matrix @ points_cam.T).T
+    uv = uv[:, :2] / (uv[:, 2:3] + 1e-6)
+    return uv, depth
+
+def group_3d_parts(superpoints, point_cloud, views, masks, camera_positions, orientations, scene_bounds):
+    intrinsics = o3d.camera.PinholeCameraIntrinsic(256, 256, 500, 500, 128, 128)
     scores = np.zeros(superpoints.shape[1])
     visibility = np.zeros((len(point_cloud), len(views)))
+    weights = []
     
-    for v, (view, mask, cam_pos) in enumerate(zip(views, masks, camera_positions)):
-        projected = project_points(point_cloud, cam_pos)  # placeholder
-        for i, (proj, pt) in enumerate(zip(projected, point_cloud)):
-            if is_visible(proj, view.shape):  # placeholder check
+    for v, (view, mask, pos, ori) in enumerate(zip(views, masks, camera_positions, orientations)):
+        uv, depth = project_points(point_cloud, pos, ori, intrinsics)
+        mask_center = np.mean(np.argwhere(mask > 0.5), axis=0) if np.any(mask > 0.5) else np.array([128, 128])
+        weight = calculate_view_weights(pos, mask_center[::-1], scene_bounds)
+        weights.append(weight)
+        
+        for i, (u, d) in enumerate(zip(uv, depth)):
+            if d > 0 and 0 <= u[0] < 256 and 0 <= u[1] < 256:
                 visibility[i, v] = 1
-                if inside_mask(proj, mask):  # placeholder check
-                    weight = calculate_view_weights(cam_pos, pt[:2])
+                if mask[int(u[1]), int(u[0])] > 0.5:
                     scores += superpoints[i] * weight
     
-    denom = (visibility @ np.ones(len(views))) + 1e-6
+    denom = visibility @ np.array(weights) + 1e-6
     scores = scores / denom
     
     foreground = scores > 0.5
     part_masks = superpoints[:, foreground]
     return part_masks
-
-def project_points(point_cloud, camera_pos):
-    return point_cloud[:, :2]  # mock projection
-
-def is_visible(proj, shape):
-    return 0 <= proj[0] < shape[0] and 0 <= proj[1] < shape[1]
-
-def inside_mask(proj, mask):
-    x, y = int(proj[0]), int(proj[1])
-    return mask[x, y] > 0.5 if 0 <= x < mask.shape[0] and 0 <= y < mask.shape[1] else False
