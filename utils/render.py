@@ -219,11 +219,7 @@ def load_img(file_name):
     return image
 
 
-def load_img(file_name):
-    pil_image = Image.open(file_name).convert("RGB")
-    # convert to BGR format
-    image = np.array(pil_image)[:, :, [2, 1, 0]]
-    return image
+
 
 def project_3d_to_2d(obj_xyz: np.ndarray, 
                      top_k_masks: np.ndarray, 
