@@ -409,3 +409,23 @@ def write_result_file(avgs, filename):
                 )
                 + "\n"
             )
+
+
+def write_result_file(avgs, filename):
+    _SPLITTER = ","
+    with open(filename, "w") as f:
+        f.write(
+            _SPLITTER.join(["class", "class id", "ap", "ap50", "ap25"]) + "\n"
+        )
+        for i in range(len(VALID_CLASS_IDS)):
+            class_name = CLASS_LABELS[i]
+            class_id = VALID_CLASS_IDS[i]
+            ap = avgs["classes"][class_name]["ap"]
+            ap50 = avgs["classes"][class_name]["ap50%"]
+            ap25 = avgs["classes"][class_name]["ap25%"]
+            f.write(
+                _SPLITTER.join(
+                    [str(x) for x in [class_name, class_id, ap, ap50, ap25]]
+                )
+                + "\n"
+            )
