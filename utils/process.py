@@ -205,8 +205,7 @@ def process_mask_results(mask_results, top_k_masks):
     
     return merged_results
 
-
-ef process_mask_results(mask_results, top_k_masks):
+process_mask_results(mask_results, top_k_masks):
     merged_masks = {}
     merged_scores = {}
     mask_counts = {}
