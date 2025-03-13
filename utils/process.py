@@ -204,3 +204,41 @@ def process_mask_results(mask_results, top_k_masks):
     }
     
     return merged_results
+
+
+ef process_mask_results(mask_results, top_k_masks):
+    merged_masks = {}
+    merged_scores = {}
+    mask_counts = {}
+    
+    for idx, result in mask_results.items():
+        label = result['label']
+        part_mask = top_k_masks[idx].cpu().numpy()
+        score = result['miou'].item()  # Convert tensor to float
+        
+        if label in merged_masks:
+            # Merge mask
+            merged_masks[label] = np.logical_or(merged_masks[label], part_mask)
+            
+            # Update score (simple average)
+            mask_counts[label] += 1
+            merged_scores[label] += score
+        else:
+            # New label
+            merged_masks[label] = part_mask
+            merged_scores[label] = score
+            mask_counts[label] = 1
+    
+    # Calculate average scores
+    for label in merged_scores:
+        merged_scores[label] /= mask_counts[label]
+    
+    # Combine results into a single dictionary
+    merged_results = {
+        label: {
+            'mask': mask,
+            'score': merged_scores[label]
+        } for label, mask in merged_masks.items()
+    }
+    
+    return merged_results
