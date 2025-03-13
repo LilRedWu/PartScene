@@ -210,6 +210,36 @@ def render_all_angles_pc(pc,save_dir, device):
     return img_dir, pc_depth.cpu().numpy(), screen_coords.cpu().numpy(), len(views), cameras_list
 
 
+def render_all_angles_pc(pc,save_dir, device):
+    #pc = io.load_pointcloud(pc_file, device=device)
+
+    img_dir = os.path.join(save_dir, "rendered_img")
+    os.makedirs(img_dir, exist_ok=True)
+    indices = [0, 4, 7, 1, 5, 2, 8, 6, 3, 9]
+
+    views = [[10, 0], [10, 90], [10, 180], [10, 270], [40, 0], [40, 120], [40, 240], [-20, 60], [-20, 180], [-20, 300]]
+    # views = [[10, 0], [10, 90], [10, 180], [10, 270], [40, 0], [40, 120], [40, 240]]
+
+    pc_depth_list = []
+    screen_coords_list = []
+    cameras_list = []
+    for i, view in enumerate(views):
+
+        pc_img, pc_depth, screen_coords, cameras = render_single_view(pc = pc,view = view,device=device)
+        img_np = pc_img[0, ..., :3].cpu().numpy() * 0.99999  # First batch, RGB channels only
+        img_np_uint8 = (img_np).astype(np.uint8)  # Convert float [0, 1] to uint8 [0, 255]
+
+        plt.imsave(os.path.join(img_dir, f"{i}.png"), img_np_uint8)
+        pc_depth_list.append(pc_depth)
+        screen_coords_list.append(screen_coords)
+        cameras_list.append(cameras)
+
+    pc_depth = torch.cat(pc_depth_list, dim=0).squeeze()
+    screen_coords = torch.cat(screen_coords_list, dim=0).reshape(len(views),-1, 3)[...,:2]
+    # np.save(f"{save_dir}/idx.npy", pc_idx.cpu().numpy())
+    # np.save(f"{save_dir}/coor.npy", screen_coords.cpu().numpy())
+    return img_dir, pc_depth.cpu().numpy(), screen_coords.cpu().numpy(), len(views), cameras_list
+
 
 def load_img(file_name):
     pil_image = Image.open(file_name).convert("RGB")
