@@ -5,6 +5,7 @@ from collections import defaultdict
 import os
 import open3d as o3d
 NUM_PROMPTS = 1024
+NUM_PROMPTS = 1024
 
 
 def load_instance_info(instance_info_dir):
