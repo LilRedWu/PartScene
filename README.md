@@ -26,6 +26,8 @@ pip install -r requirements.txt
 Compile the CUDA dependencies using the following command:
 
 
+
+
 ## Steup
 ### Preprocess the 3d mask proposal 
 ```
@@ -51,6 +53,13 @@ python evaluate.py --model_path path_to_checkpoint
 ```
 bash benchmark.sh
 ```
+## Model Weights
+Download pre-trained model weights for the OpenPart3D methods evaluated with different approaches:
 
+| Method    | AP₅₀ | AP₂₅ | Download Link                          | Config Link                          |
+|-----------|------|------|----------------------------------------|--------------------------------------|
+| VLPart    | 10.8 | 24.2 | [weights](https://github.com/PeizeSun/VLPart/releases/download/v0.1/r50_lvis_paco.pth) | [config](https://github.com/facebookresearch/VLPart/blob/main/configs/joint/r50_lvis_paco.yaml) |
+| OpenSeeD  | 13.1 | 29.3 | [weights](https://github.com/IDEA-Research/OpenSeeD/releases/download/openseed/model_state_dict_swint_51.2ap.pt) | [config](https://example.com/openseed_config.yaml) |
+| Florence  | 17.8 | 35.3 | [weights](https://github.com/IDEA-Research/OpenSeeD/releases/download/ade20k_swinl/openseed_ade20k_swinl.pt) | [config](https://example.com/florence_config.yaml) |
 # Contributions
 If you'd like to contribute, feel free to submit a pull request or open an issue for discussion.
