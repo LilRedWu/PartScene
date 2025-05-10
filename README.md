@@ -58,7 +58,7 @@ Download pre-trained model weights for the OpenPart3D methods evaluated with dif
 
 | Method    | AP₅₀ | AP₂₅ | Download Link                          | Config Link                          |
 |-----------|------|------|----------------------------------------|--------------------------------------|
-| VLPart    | 10.8 | 24.2 | [weights](https://github.com/PeizeSun/VLPart/releases/download/v0.1/r50_lvis_paco.pth) | [config](https://github.com/facebookresearch/VLPart/blob/main/configs/joint/r50_lvis_paco.yaml) |
+| VLPart    | 10.8 | 24.2 | [weights](https://github.com/PeizeSun/VLPart/releases/download/v0.1/r50_lvis_paco.pth) | [config](https://drive.google.com/file/d/1eYgkx6m2NjWAbLzdfv0zlAJW2beEQqIV/view?usp=drive_link)
 | OpenSeeD  | 13.1 | 29.3 | [weights](https://github.com/IDEA-Research/OpenSeeD/releases/download/openseed/model_state_dict_swint_51.2ap.pt) | [config](https://example.com/openseed_config.yaml) |
 | Florence  | 17.8 | 35.3 | [weights](https://huggingface.co/microsoft/Florence-2-large/resolve/main/pytorch_model.bin?download=true) | [config](https://example.com/florence_config.yaml) |
 # Contributions
